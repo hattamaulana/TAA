@@ -13,16 +13,19 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-fun AlertDialog.Builder.chooseAction() {
+var photoFile: File? = null
+var photoUri: Uri? = null
+
+fun AlertDialog.Builder.chooseAction(activity: Activity) {
     arrayOf("Take Photo", "Choose from Library", "Cancel").also {
         setItems(it) { dialog, i ->
             when(it[i]) {
-                "Take Photo" -> context.requestStoragePermission {
-                    (context as Activity).accessCamera()
+                "Take Photo" -> context.requestStoragePermission(activity) {
+                    photoUri = activity.accessCamera()
                 }
 
-                "Choose from Library" -> context.requestStoragePermission {
-                    (context as Activity).accessGalery()
+                "Choose from Library" -> context.requestStoragePermission(activity) {
+                    activity.accessGalery()
                 }
 
                 "Cancel" -> dialog.dismiss()

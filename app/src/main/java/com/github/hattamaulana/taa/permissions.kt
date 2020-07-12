@@ -22,8 +22,8 @@ import java.io.File
 const val REQUEST_ACCESS_CAMERA = 1
 const val REQUEST_ACCESS_GALERY = 2
 
-fun Context.requestStoragePermission(callback: ()-> Unit) {
-    Dexter.withActivity(this as Activity)
+fun Context.requestStoragePermission(activity: Activity, callback: ()-> Unit) {
+    Dexter.withActivity(activity)
         .withPermissions(
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -75,13 +75,13 @@ private fun Context.showSetting() {
     builder.show()
 }
 
-fun Activity.accessCamera() {
+fun Activity.accessCamera(): Uri {
     val file = File(
         getExternalFilesDir(Environment.DIRECTORY_PICTURES),
         "${ System.currentTimeMillis() } _capturedImg.jpg"
     )
 
-    val stringUri = "${ BuildConfig.APPLICATION_ID }.com.hopp.hopppetclinic.fileprovider"
+    val stringUri = "com.github.hattamaulana.taa.provider"
     val uri = FileProvider.getUriForFile(this, stringUri, file);
     val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -90,6 +90,8 @@ fun Activity.accessCamera() {
     }
 
     startActivityForResult(intent, REQUEST_ACCESS_CAMERA)
+
+    return uri
 }
 
 fun Activity.accessGalery() {

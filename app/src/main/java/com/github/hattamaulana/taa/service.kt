@@ -6,16 +6,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.*
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
 
-const val BASE_URL = "https://todo.dhanifudin.com"
+const val BASE_URL = "http://192.168.43.136:8000"
 
 interface Service {
-    @GET("/{name}")
-    fun get(@Path("name") name: String): Call<String>
-
-    @POST("/")
-    @FormUrlEncoded
+    @POST("/api")
+    @Multipart
     fun upload(@Part image: MultipartBody.Part): Call<String>
 }
 
