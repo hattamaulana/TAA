@@ -5,8 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
 class UploadActivity : AppCompatActivity(), RequestObserverDelegate {
 
+    private lateinit var uri: Uri
     private lateinit var mFileImage: File
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -74,8 +77,13 @@ class UploadActivity : AppCompatActivity(), RequestObserverDelegate {
         if (resultCode != Activity.RESULT_OK) return
 
         val bitmap: Bitmap? = when(requestCode) {
-            REQUEST_ACCESS_CAMERA -> photoUri?.let { getBitmap(it) }
+            REQUEST_ACCESS_CAMERA -> photoUri?.let {
+                uri = it
+                getBitmap(it)
+            }
+
             REQUEST_ACCESS_GALERY -> data?.data?.let {
+                uri = it
                 getBitmap(it)
             }
 
@@ -102,17 +110,43 @@ class UploadActivity : AppCompatActivity(), RequestObserverDelegate {
         progressBar.visibility = View.VISIBLE
 
         Log.i(TAG, "handleClickBtnUpload: isSucces= ${ mFileImage.path }")
+        val path = getPath(uri)
+        if (path.isEmpty()) return@OnClickListener
 
         MultipartUploadRequest(this, serverUrl = "$BASE_URL/api").apply {
             setMethod("POST")
             addFileToUpload(
-                filePath = mFileImage.path,
+                filePath = path,
                 parameterName = "file"
             )
             startUpload()
             subscribe(this@UploadActivity, this@UploadActivity,
                 this@UploadActivity)
         }
+    }
+
+    private fun getPath(uri: Uri): String {
+        var cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.let {
+            it.moveToFirst()
+        }
+
+        var documentId = cursor?.getString(0)
+        documentId = documentId?.substring(documentId.lastIndexOf(":") + 1)
+        cursor?.close()
+
+        cursor = contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null,
+            MediaStore.Images.Media._ID + " = ? ", arrayOf(documentId),
+            null
+        )
+
+        cursor?.moveToFirst()
+        val path = cursor?.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+        cursor?.close()
+
+        return path ?: ""
     }
 
     override fun onCompleted(context: Context, uploadInfo: UploadInfo) {

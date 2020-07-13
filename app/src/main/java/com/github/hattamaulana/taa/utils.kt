@@ -20,10 +20,6 @@ fun AlertDialog.Builder.chooseAction(activity: Activity) {
     arrayOf("Take Photo", "Choose from Library", "Cancel").also {
         setItems(it) { dialog, i ->
             when(it[i]) {
-                "Take Photo" -> context.requestStoragePermission(activity) {
-                    photoUri = activity.accessCamera()
-                }
-
                 "Choose from Library" -> context.requestStoragePermission(activity) {
                     activity.accessGalery()
                 }
